@@ -1,4 +1,5 @@
 source/node_modules/
 source/dist/
+source/src/fonts/
 .vite/
 .DS_Store

@@ -15,10 +15,16 @@ set of points shared by all three planes.
 - Geometric explanation of every case: unique intersection point, common line
   (book-spine), coincident planes, triangular prism, parallel planes — with the
   intersection point / red solution line / pairwise dashed lines drawn in 3D.
+- Axis **intercept points** marked on each plane, with the triangle they span subtly
+  shaded — the visible "seed" that the infinite plane extends.
 - **6 example systems** (one per outcome), orbit camera, per-plane **View** button
-  (face any plane head-on), edge-on views `a|b`, `b|c`, `a|c` to spot parallel planes,
-  auto-rotate, grid, axes and plane-opacity controls.
+  (face any plane head-on), a **View menu** with the `a|b`, `b|c`, `a|c` and default
+  camera angles, toggleable **reference grids on all three coordinate planes**,
+  auto-rotate, axes and plane-opacity controls.
+- Every 3D tag can be hidden — per plane, for the solution, or for the axes — so
+  labels never block the geometry you are trying to see.
 - det(A) shown live, tying the algebra to the geometry.
+- Set in the Saans and Saans SemiMono typefaces.
 
 ## Repository layout
 
@@ -39,6 +45,10 @@ npm run build   # regenerates ../index.html (single self-contained file)
 The build uses `vite-plugin-singlefile`, so the output is always one `index.html` at
 the repo root — there are no asset folders or paths that could break when the site is
 served from a subpath like `username.github.io/repo/`.
+
+Note on fonts: the Saans woff2 files under `source/src/fonts/` are licensed and are
+**not** committed to the repo. To rebuild, drop the six files listed at the top of
+`source/src/index.css` into that folder first.
 
 ## Publishing on GitHub Pages
 

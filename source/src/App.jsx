@@ -218,9 +218,10 @@ const PRESETS = [
 const planeFromPreset = (coefs, i) => ({
   slot: i,
   show: true,
+  labels: true,
   coef: coefs.map(String),
 })
-const newPlane = (slot) => ({ slot, show: true, coef: ['', '', '', ''] })
+const newPlane = (slot) => ({ slot, show: true, labels: true, coef: ['', '', '', ''] })
 
 function parseToken(s) {
   const t = String(s).trim()
@@ -235,7 +236,13 @@ function parseToken(s) {
 
 const noRaycast = () => null
 
-function AxesAndGrid({ showGrid, showAxes }) {
+const GRID_ROTS = {
+  ab: [Math.PI / 2, 0, 0], // c = 0
+  ac: [0, 0, 0],           // b = 0
+  bc: [0, 0, Math.PI / 2], // a = 0
+}
+
+function AxesAndGrid({ grids, showAxes, showAxisLabels }) {
   const axes = [
     { dir: [1, 0, 0], label: 'a', labelPos: [WORLD + 1.8, 0, 0], coneRot: [0, 0, -Math.PI / 2] },
     { dir: [0, 1, 0], label: 'b', labelPos: [0, WORLD + 1.8, 0], coneRot: [0, 0, 0] },
@@ -245,13 +252,14 @@ function AxesAndGrid({ showGrid, showAxes }) {
   const ticks = [-10, -5, 5, 10]
   return (
     <group>
-      {showGrid && (
+      {Object.keys(GRID_ROTS).filter((k) => grids[k]).map((k) => (
         <gridHelper
+          key={k}
           args={[2 * WORLD, 2 * WORLD, '#c3cedd', '#e4e9f2']}
-          rotation={[Math.PI / 2, 0, 0]}
+          rotation={GRID_ROTS[k]}
           raycast={noRaycast}
         />
-      )}
+      ))}
       {showAxes && axes.map((ax) => (
         <group key={ax.label}>
           <Line
@@ -266,10 +274,12 @@ function AxesAndGrid({ showGrid, showAxes }) {
             <coneGeometry args={[0.28, 0.9, 12]} />
             <meshBasicMaterial color={axisColor} />
           </mesh>
-          <Html position={ax.labelPos} center zIndexRange={[40, 0]} style={{ pointerEvents: 'none' }}>
-            <div className="axisChip">{ax.label}</div>
-          </Html>
-          {ticks.map((t) => (
+          {showAxisLabels && (
+            <Html position={ax.labelPos} center zIndexRange={[40, 0]} style={{ pointerEvents: 'none' }}>
+              <div className="axisChip">{ax.label}</div>
+            </Html>
+          )}
+          {showAxisLabels && ticks.map((t) => (
             <Html
               key={t}
               position={scl(ax.dir, t)}
@@ -294,23 +304,16 @@ function planeBasis(u) {
   return [b1, b2]
 }
 
-function PlaneSurface({ plane, color, opacity, label }) {
-  const { quat, border, labelPos } = useMemo(() => {
+function PlaneSurface({ plane, color, opacity, label, showLabels }) {
+  const { quat, labelPos } = useMemo(() => {
     const q = new THREE.Quaternion().setFromUnitVectors(
       new THREE.Vector3(0, 0, 1),
       new THREE.Vector3(plane.u[0], plane.u[1], plane.u[2])
     )
     const [b1, b2] = planeBasis(plane.u)
     const S = PLANE_HALF
-    const cs = [
-      add(plane.anchor, add(scl(b1, S), scl(b2, S))),
-      add(plane.anchor, add(scl(b1, -S), scl(b2, S))),
-      add(plane.anchor, add(scl(b1, -S), scl(b2, -S))),
-      add(plane.anchor, add(scl(b1, S), scl(b2, -S))),
-    ]
     return {
       quat: q,
-      border: [...cs, cs[0]],
       labelPos: add(plane.anchor, add(scl(b1, S * 0.86), scl(b2, S * 0.86))),
     }
   }, [plane])
@@ -326,10 +329,68 @@ function PlaneSurface({ plane, color, opacity, label }) {
           depthWrite={false}
         />
       </mesh>
-      <Line points={border} color={color} lineWidth={1.2} transparent opacity={0.55} raycast={noRaycast} />
-      <Html position={labelPos} center zIndexRange={[40, 0]} style={{ pointerEvents: 'none' }}>
-        <div className="tag3d" style={{ background: color }}>{label}</div>
-      </Html>
+      <InterceptMarks plane={plane} color={color} opacity={opacity} showLabels={showLabels} />
+      {showLabels && (
+        <Html position={labelPos} center zIndexRange={[40, 0]} style={{ pointerEvents: 'none' }}>
+          <div className="tag3d" style={{ background: color }}>{label}</div>
+        </Html>
+      )}
+    </group>
+  )
+}
+
+/**
+ * Axis intercepts of the plane (the points where it crosses each axis) and
+ * the triangle they span — the visible "seed" that the infinite plane extends.
+ */
+function InterceptMarks({ plane, color, opacity, showLabels }) {
+  const { pts, tri, dark } = useMemo(() => {
+    const pts = []
+    for (let i = 0; i < 3; i++) {
+      if (Math.abs(plane.n[i]) < 1e-9) continue
+      const v = plane.d / plane.n[i]
+      if (!Number.isFinite(v) || Math.abs(v) > 24) continue
+      const p = [0, 0, 0]
+      p[i] = v
+      pts.push({ p, key: VARS[i] })
+    }
+    let tri = null
+    if (pts.length === 3) {
+      const [A, B, C] = pts.map((x) => x.p)
+      if (norm(cross(sub(B, A), sub(C, A))) > 1e-6) tri = new Float32Array([...A, ...B, ...C])
+    }
+    const dark = '#' + new THREE.Color(color).multiplyScalar(0.82).getHexString()
+    return { pts, tri, dark }
+  }, [plane, color])
+  return (
+    <group>
+      {tri && (
+        <mesh raycast={noRaycast} renderOrder={2}>
+          <bufferGeometry>
+            <bufferAttribute attach="attributes-position" array={tri} count={3} itemSize={3} />
+          </bufferGeometry>
+          <meshBasicMaterial
+            color={dark}
+            transparent
+            opacity={Math.min(opacity + 0.13, 0.85)}
+            side={THREE.DoubleSide}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
+      {pts.map(({ p, key }) => (
+        <group key={key}>
+          <mesh position={p} raycast={noRaycast}>
+            <sphereGeometry args={[0.24, 20, 20]} />
+            <meshBasicMaterial color={dark} />
+          </mesh>
+          {showLabels && (
+            <Html position={p} center zIndexRange={[40, 0]} style={{ pointerEvents: 'none' }}>
+              <div className="ptChip" style={{ color: dark, borderColor: color }}>{fmtVec(p)}</div>
+            </Html>
+          )}
+        </group>
+      ))}
     </group>
   )
 }
@@ -362,16 +423,18 @@ function InterLine({ line, color, lineWidth = 2, dashed = false, label = null })
   )
 }
 
-function SolutionPoint({ point }) {
+function SolutionPoint({ point, showLabel }) {
   return (
     <group>
       <mesh position={point} raycast={noRaycast}>
         <sphereGeometry args={[0.5, 32, 32]} />
         <meshStandardMaterial color="#dc2626" emissive="#dc2626" emissiveIntensity={0.3} />
       </mesh>
-      <Html position={point} center zIndexRange={[45, 0]} style={{ pointerEvents: 'none' }}>
-        <div className="coordTag">{fmtVec(point)}</div>
-      </Html>
+      {showLabel && (
+        <Html position={point} center zIndexRange={[45, 0]} style={{ pointerEvents: 'none' }}>
+          <div className="coordTag">{fmtVec(point)}</div>
+        </Html>
+      )}
     </group>
   )
 }
@@ -493,7 +556,7 @@ function diagnosisContent(sys) {
   }
 }
 
-function DiagnosticCard({ sys, activeItems }) {
+function DiagnosticCard({ sys, activeItems, solLabels, onSolLabels }) {
   const { badge, msg, explain, solution } = diagnosisContent(sys)
 
   let detInfo = null
@@ -536,6 +599,15 @@ function DiagnosticCard({ sys, activeItems }) {
             : 'nonzero, so a unique solution exists'}
         </div>
       )}
+      <label className="check" style={{ marginTop: 10 }}
+        title="Show or hide the solution and intersection tags in the 3D view">
+        <input
+          type="checkbox"
+          checked={solLabels}
+          onChange={(e) => onSolLabels(e.target.checked)}
+        />
+        Solution labels in 3D
+      </label>
     </div>
   )
 }
@@ -544,7 +616,7 @@ function DiagnosticCard({ sys, activeItems }) {
 /*  Panel: plane card                                                  */
 /* ================================================================== */
 
-function PlaneCard({ planeState, status, plane, onChange, onToggle, onView, onRemove }) {
+function PlaneCard({ planeState, status, plane, onChange, onToggle, onLabels, onView, onRemove }) {
   const color = COLORS[planeState.slot]
   return (
     <div className="card planeCard" style={{ borderColor: color + '55' }}>
@@ -606,6 +678,15 @@ function PlaneCard({ planeState, status, plane, onChange, onToggle, onView, onRe
           />
           Show plane
         </label>
+        <label className="check" title="Show or hide this plane's tags in the 3D view">
+          <input
+            type="checkbox"
+            style={{ accentColor: color }}
+            checked={planeState.labels}
+            onChange={(e) => onLabels(e.target.checked)}
+          />
+          Labels
+        </label>
         <button
           className="viewBtnSm"
           disabled={!plane}
@@ -626,10 +707,13 @@ function PlaneCard({ planeState, status, plane, onChange, onToggle, onView, onRe
 export default function App() {
   const [planes, setPlanes] = useState(() => PRESETS[0].coefs.map(planeFromPreset))
 
-  const [showGrid, setShowGrid] = useState(true)
+  const [grids, setGrids] = useState({ ab: true, ac: false, bc: false })
   const [showAxes, setShowAxes] = useState(true)
+  const [showAxisLabels, setShowAxisLabels] = useState(true)
+  const [solLabels, setSolLabels] = useState(true)
   const [autoRotate, setAutoRotate] = useState(false)
   const [opacity, setOpacity] = useState(0.45)
+  const [viewMenu, setViewMenu] = useState(false)
 
   const [showSolPoint, setShowSolPoint] = useState(true)
   const [showSolLine, setShowSolLine] = useState(true)
@@ -671,6 +755,19 @@ export default function App() {
   const toggleShow = (slot) => (value) => {
     setPlanes((ps) => ps.map((p) => (p.slot === slot ? { ...p, show: value } : p)))
   }
+
+  const toggleLabels = (slot) => (value) => {
+    setPlanes((ps) => ps.map((p) => (p.slot === slot ? { ...p, labels: value } : p)))
+  }
+
+  const toggleGrid = (k) => setGrids((g) => ({ ...g, [k]: !g[k] }))
+
+  useEffect(() => {
+    if (!viewMenu) return
+    const close = (e) => { if (!e.target.closest?.('.viewDrop')) setViewMenu(false) }
+    document.addEventListener('pointerdown', close)
+    return () => document.removeEventListener('pointerdown', close)
+  }, [viewMenu])
 
   const addPlane = () => {
     setPlanes((ps) => {
@@ -725,6 +822,15 @@ export default function App() {
           <span>{status.solution ? status.solution.text : status.msg}</span>
         </div>
 
+        <label className="cornerToggle" title="Show or hide the a / b / c axis labels and tick numbers">
+          <input
+            type="checkbox"
+            checked={showAxisLabels}
+            onChange={(e) => setShowAxisLabels(e.target.checked)}
+          />
+          Axis labels
+        </label>
+
         <div className="overlayViews">
           <button
             className={`viewBtn ${autoRotate ? 'active' : ''}`}
@@ -737,21 +843,36 @@ export default function App() {
           {['ab', 'bc', 'ac'].map((key) => (
             <button
               key={key}
-              className={`viewBtn ${activeView === key ? 'active' : ''}`}
-              onClick={() => goView(key)}
-              title={`Look straight at the ${VIEWS[key].label.replace(' | ', '–')} plane`}
+              className={`viewBtn ${grids[key] ? 'active' : ''}`}
+              onClick={() => toggleGrid(key)}
+              title={`Toggle the ${VIEWS[key].label.replace(' | ', '–')} grid`}
             >
               {VIEWS[key].label}
             </button>
           ))}
           <span className="vSep" />
-          <button
-            className={`viewBtn ${activeView === 'home' ? 'active' : ''}`}
-            onClick={() => goView('home')}
-            title="Back to the default 3D view"
-          >
-            ⌂ View
-          </button>
+          <div className="viewDrop">
+            <button
+              className={`viewBtn ${viewMenu ? 'active' : ''}`}
+              onClick={() => setViewMenu((v) => !v)}
+              title="Camera views"
+            >
+              View ▾
+            </button>
+            {viewMenu && (
+              <div className="viewMenu">
+                {['ab', 'bc', 'ac'].map((key) => (
+                  <button key={key} onClick={() => { goView(key); setViewMenu(false) }}>
+                    {VIEWS[key].label}
+                  </button>
+                ))}
+                <div className="menuSep" />
+                <button onClick={() => { goView('home'); setViewMenu(false) }}>
+                  ⌂ Default view
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <Canvas
@@ -763,7 +884,7 @@ export default function App() {
           <directionalLight position={[12, -14, 20]} intensity={0.5} />
           <directionalLight position={[-10, 12, -8]} intensity={0.22} />
 
-          <AxesAndGrid showGrid={showGrid} showAxes={showAxes} />
+          <AxesAndGrid grids={grids} showAxes={showAxes} showAxisLabels={showAxisLabels} />
 
           {derived.map((d) => (
             d.status === 'ok' && d.state.show ? (
@@ -773,16 +894,18 @@ export default function App() {
                 color={COLORS[d.state.slot]}
                 opacity={opacity}
                 label={`P${d.state.slot + 1}`}
+                showLabels={d.state.labels}
               />
             ) : null
           ))}
 
           {drawTwoLine && (
             <InterLine line={sys.line} color="#7c3aed" lineWidth={3}
-              label={`P${sys.slots[0] + 1} ∩ P${sys.slots[1] + 1}`} />
+              label={solLabels ? `P${sys.slots[0] + 1} ∩ P${sys.slots[1] + 1}` : null} />
           )}
           {drawSolLine && (
-            <InterLine line={sys.line} color="#dc2626" lineWidth={4} label="solution line" />
+            <InterLine line={sys.line} color="#dc2626" lineWidth={4}
+              label={solLabels ? 'solution line' : null} />
           )}
           {drawPairLines && sys.pairLines?.map((pl, i) => (
             <InterLine
@@ -791,10 +914,10 @@ export default function App() {
               color="#64748b"
               lineWidth={1.6}
               dashed
-              label={`P${pl.slots[0] + 1} ∩ P${pl.slots[1] + 1}`}
+              label={solLabels ? `P${pl.slots[0] + 1} ∩ P${pl.slots[1] + 1}` : null}
             />
           ))}
-          {drawSolPoint && <SolutionPoint point={sys.point} />}
+          {drawSolPoint && <SolutionPoint point={sys.point} showLabel={solLabels} />}
 
           <OrbitControls
             makeDefault
@@ -827,7 +950,12 @@ export default function App() {
           </select>
         </div>
 
-        <DiagnosticCard sys={sys} activeItems={activeItems} />
+        <DiagnosticCard
+          sys={sys}
+          activeItems={activeItems}
+          solLabels={solLabels}
+          onSolLabels={setSolLabels}
+        />
 
         {planes.map((p) => {
           const d = derived.find((x) => x.state.slot === p.slot)
@@ -839,6 +967,7 @@ export default function App() {
               plane={d.plane}
               onChange={setCoef(p.slot)}
               onToggle={toggleShow(p.slot)}
+              onLabels={toggleLabels(p.slot)}
               onView={() => d.plane && goPlaneView(d.plane)}
               onRemove={() => removePlane(p.slot)}
             />
@@ -883,10 +1012,6 @@ export default function App() {
               </label>
             )}
             <label className="check stack">
-              <input type="checkbox" checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} />
-              Grid (a–b plane)
-            </label>
-            <label className="check stack">
               <input type="checkbox" checked={showAxes} onChange={(e) => setShowAxes(e.target.checked)} />
               Axes and scale
             </label>
@@ -907,8 +1032,11 @@ export default function App() {
             <ul>
               <li><b>Rotate:</b> drag &nbsp;·&nbsp; <b>Zoom:</b> scroll &nbsp;·&nbsp; <b>Pan:</b> right-drag.</li>
               <li>Each equation (like <span className="mono">a + b + c = 10</span>) is one plane. Edit the four numbers and everything updates live.</li>
+              <li>The dots on the axes are the plane&rsquo;s <b>intercepts</b> (where it crosses each axis); the slightly darker triangle between them is the patch the infinite plane extends.</li>
               <li>The three coefficients form the plane&rsquo;s <b>normal vector</b> — they set its tilt. The right-hand side slides the plane along that normal.</li>
-              <li>Press <b>View</b> on a plane card to face that plane head-on, or use <b>a|b, b|c, a|c</b> to spot parallel planes: seen edge-on, they become parallel lines.</li>
+              <li>Press <b>View</b> on a plane card to face that plane head-on, or open the <b>View</b> menu below the scene for the a|b, b|c, a|c and default camera angles — parallel planes seen edge-on become parallel lines.</li>
+              <li>The <b>a|b, b|c, a|c</b> buttons below the scene toggle the reference grid on each coordinate plane.</li>
+              <li>Too crowded? Hide tags per plane (<b>Labels</b>), the solution tags (in the diagnosis card), or the <b>Axis labels</b> (top-right of the scene).</li>
               <li>Load the example systems to see every possible outcome of a 3×3 system.</li>
             </ul>
           </details>
