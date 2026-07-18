@@ -329,7 +329,7 @@ function PlaneSurface({ plane, color, opacity, label, showLabels }) {
           depthWrite={false}
         />
       </mesh>
-      <InterceptMarks plane={plane} color={color} opacity={opacity} showLabels={showLabels} />
+      <InterceptMarks plane={plane} color={color} showLabels={showLabels} />
       {showLabels && (
         <Html position={labelPos} center zIndexRange={[40, 0]} style={{ pointerEvents: 'none' }}>
           <div className="tag3d" style={{ background: color }}>{label}</div>
@@ -339,12 +339,9 @@ function PlaneSurface({ plane, color, opacity, label, showLabels }) {
   )
 }
 
-/**
- * Axis intercepts of the plane (the points where it crosses each axis) and
- * the triangle they span — the visible "seed" that the infinite plane extends.
- */
-function InterceptMarks({ plane, color, opacity, showLabels }) {
-  const { pts, tri, dark } = useMemo(() => {
+/** Axis intercepts of the plane — the points where it crosses each axis. */
+function InterceptMarks({ plane, color, showLabels }) {
+  const { pts, dark } = useMemo(() => {
     const pts = []
     for (let i = 0; i < 3; i++) {
       if (Math.abs(plane.n[i]) < 1e-9) continue
@@ -354,30 +351,11 @@ function InterceptMarks({ plane, color, opacity, showLabels }) {
       p[i] = v
       pts.push({ p, key: VARS[i] })
     }
-    let tri = null
-    if (pts.length === 3) {
-      const [A, B, C] = pts.map((x) => x.p)
-      if (norm(cross(sub(B, A), sub(C, A))) > 1e-6) tri = new Float32Array([...A, ...B, ...C])
-    }
     const dark = '#' + new THREE.Color(color).multiplyScalar(0.82).getHexString()
-    return { pts, tri, dark }
+    return { pts, dark }
   }, [plane, color])
   return (
     <group>
-      {tri && (
-        <mesh raycast={noRaycast} renderOrder={2}>
-          <bufferGeometry>
-            <bufferAttribute attach="attributes-position" array={tri} count={3} itemSize={3} />
-          </bufferGeometry>
-          <meshBasicMaterial
-            color={dark}
-            transparent
-            opacity={Math.min(opacity + 0.13, 0.85)}
-            side={THREE.DoubleSide}
-            depthWrite={false}
-          />
-        </mesh>
-      )}
       {pts.map(({ p, key }) => (
         <group key={key}>
           <mesh position={p} raycast={noRaycast}>

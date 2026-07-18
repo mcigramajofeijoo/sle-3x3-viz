@@ -15,8 +15,7 @@ set of points shared by all three planes.
 - Geometric explanation of every case: unique intersection point, common line
   (book-spine), coincident planes, triangular prism, parallel planes — with the
   intersection point / red solution line / pairwise dashed lines drawn in 3D.
-- Axis **intercept points** marked on each plane, with the triangle they span subtly
-  shaded — the visible "seed" that the infinite plane extends.
+- Axis **intercept points** marked on each plane — where it crosses each axis.
 - **6 example systems** (one per outcome), orbit camera, per-plane **View** button
   (face any plane head-on), a **View menu** with the `a|b`, `b|c`, `a|c` and default
   camera angles, toggleable **reference grids on all three coordinate planes**,
