@@ -597,7 +597,7 @@ function DiagnosticCard({ sys, activeItems, solLabels, onSolLabels }) {
 function PlaneCard({ planeState, status, plane, onChange, onToggle, onLabels, onView, onRemove }) {
   const color = COLORS[planeState.slot]
   return (
-    <div className="card planeCard" style={{ borderColor: color + '55' }}>
+    <div className="card planeCard" style={{ borderColor: color, boxShadow: `4px 4px 0 ${color}40` }}>
       <div className="cardHead">
         <span className="dot" style={{ background: color }} />
         <span className="planeName">Plane {planeState.slot + 1}</span>
@@ -913,7 +913,10 @@ export default function App() {
       {/* ------------ side panel ------------ */}
       <div className="panel">
         <div className="panelHeader">
-          <h1>3×3 Systems of Equations</h1>
+          <h1>
+            <span className="mega">3×3</span>
+            Systems of Equations
+          </h1>
           <p>
             Each linear equation in a, b and c is a plane in space. Solving the system means
             finding the points that all planes share.
