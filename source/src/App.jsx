@@ -231,6 +231,47 @@ function parseToken(s) {
 }
 
 /* ================================================================== */
+/*  Icons (from the design file) and custom checkbox                   */
+/* ================================================================== */
+
+const IconX = () => (
+  <svg viewBox="0 0 7.8 7.8" width="13" height="13" fill="none" aria-hidden="true">
+    <path
+      d="M7.15 0.65L0.65 7.15M0.65 0.65L7.15 7.15"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+)
+
+const IconCheck = () => (
+  <svg viewBox="0 0 7.5 5.875" width="8" height="6.3" fill="none" aria-hidden="true">
+    <path
+      d="M2.5 5.875L0 3.375L0.875 2.5L2.5 4.125L6.625 0L7.5 0.875L2.5 5.875Z"
+      fill="currentColor"
+    />
+  </svg>
+)
+
+/** Round checkbox: outlined when off, filled with the given color when on. */
+function Check({ checked, onChange, color = '#6155f5', stack = false, title, children }) {
+  return (
+    <label className={`check${stack ? ' stack' : ''}`} title={title}>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <span
+        className="checkBox"
+        style={checked ? { background: color, borderColor: color } : undefined}
+      >
+        {checked && <IconCheck />}
+      </span>
+      <span className="checkLabel">{children}</span>
+    </label>
+  )
+}
+
+/* ================================================================== */
 /*  3D components                                                      */
 /* ================================================================== */
 
@@ -465,42 +506,42 @@ function diagnosisContent(sys) {
       }
     case 'one':
       return {
-        badge: ['info', 'Infinite solutions'],
+        badge: ['info', 'Infinite Solutions'],
         msg: 'One plane active',
         explain: 'A single equation in three unknowns has infinitely many solutions: every point on the plane satisfies it. Add more planes to constrain the solution set.',
         solution: { kind: 'plane', text: `plane ${paramPlane(sys.plane)}` },
       }
     case 'two-line':
       return {
-        badge: ['info', 'Infinite solutions'],
+        badge: ['info', 'Infinite Solutions'],
         msg: 'Two planes meeting in a line',
         explain: 'With two equations and three unknowns the system is consistent but underdetermined: the solutions are all the points on the purple line. A third plane can reduce this to a single point, keep the whole line, or leave no solution at all.',
         solution: { kind: 'line', text: `line ${paramLine(sys.line)}` },
       }
     case 'two-parallel':
       return {
-        badge: ['bad', 'No solution'],
+        badge: ['bad', 'No Solution'],
         msg: 'Parallel planes — no intersection',
         explain: 'The two planes share the same normal direction but sit at different offsets, so they never meet. The system is inconsistent.',
         solution: { kind: 'none', text: 'no solutions' },
       }
     case 'two-coincident':
       return {
-        badge: ['info', 'Infinite solutions'],
+        badge: ['info', 'Infinite Solutions'],
         msg: 'Two coincident planes',
         explain: 'The two equations are equivalent (one is a multiple of the other), so they describe the same plane. Every point of that plane is a solution.',
         solution: { kind: 'plane', text: `plane ${paramPlane(sys.plane)}` },
       }
     case 'unique':
       return {
-        badge: ['ok', 'Unique solution'],
+        badge: ['ok', 'Unique Solution'],
         msg: 'The three planes meet at one point',
         explain: 'There is exactly one (a, b, c) that satisfies all three equations at once — a consistent, independent system (det(A) ≠ 0).',
         solution: { kind: 'point', text: `point ${fmtVec(sys.point)}` },
       }
     case 'line':
       return {
-        badge: ['info', 'Infinite solutions'],
+        badge: ['info', 'Infinite Solutions'],
         msg: 'The three planes share a common line',
         explain: (sys.hasCoincidentPair
           ? 'Two of the planes coincide and the third cuts through them: '
@@ -510,7 +551,7 @@ function diagnosisContent(sys) {
       }
     case 'plane':
       return {
-        badge: ['info', 'Infinite solutions'],
+        badge: ['info', 'Infinite Solutions'],
         msg: 'The three planes coincide',
         explain: 'All three equations are equivalent — it is the same plane three times, so the whole plane is the solution set.',
         solution: { kind: 'plane', text: `plane ${paramPlane(sys.plane)}` },
@@ -523,7 +564,7 @@ function diagnosisContent(sys) {
         'prism': 'Each pair of planes meets in a line, but the three lines are parallel to each other — the planes form a triangular prism with no common point.',
       }[sys.subtype]
       return {
-        badge: ['bad', 'No solution'],
+        badge: ['bad', 'No Solution'],
         msg: 'Inconsistent system',
         explain: why + ' No single (a, b, c) satisfies all three equations.',
         solution: { kind: 'none', text: 'no solutions' },
@@ -532,6 +573,20 @@ function diagnosisContent(sys) {
     default:
       return { badge: null, msg: '', explain: '', solution: null }
   }
+}
+
+const VERDICT = {
+  ok: { dot: '#16a34a', bg: 'rgba(22, 163, 74, 0.05)' },
+  info: { dot: '#2a21a6', bg: 'rgba(42, 33, 166, 0.05)' },
+  bad: { dot: '#dc2626', bg: 'rgba(220, 38, 38, 0.05)' },
+}
+
+/** "point (3, 5, 2)" -> "Point(3, 5, 2)" — display form used in the verdict. */
+function solutionDisplay(solution) {
+  if (solution.kind === 'none') return 'No solutions'
+  return solution.text
+    .replace(/^(\w+) \(/, (_, k) => k[0].toUpperCase() + k.slice(1) + '(')
+    .replace(/\u2212/g, '-')
 }
 
 function DiagnosticCard({ sys, activeItems, solLabels, onSolLabels }) {
@@ -560,12 +615,15 @@ function DiagnosticCard({ sys, activeItems, solLabels, onSolLabels }) {
         </div>
       )}
       {badge ? (
-        <div className={`verdict ${badge[0]}`}>
+        <div className="verdict" style={{ background: VERDICT[badge[0]].bg }}>
           <div className="verdictTop">
-            <span className={`badge ${badge[0]}`}>{badge[1]}</span>
+            <span className="verdictState">
+              <span className="vDot" style={{ background: VERDICT[badge[0]].dot }} />
+              {badge[1]}
+            </span>
             {detInfo && (
               <span
-                className="detChip"
+                className="detNote"
                 title={detInfo.singular
                   ? 'det(A) = 0 — singular matrix, so there is no unique solution'
                   : 'det(A) ≠ 0 — a unique solution is guaranteed'}
@@ -574,26 +632,22 @@ function DiagnosticCard({ sys, activeItems, solLabels, onSolLabels }) {
               </span>
             )}
           </div>
-          {solution && (
-            <div className={`solutionBig ${solution.kind === 'none' ? 'noSol' : ''}`}>
-              {solution.text}
-            </div>
-          )}
-          <p className="verdictMsg">{msg}</p>
+          {solution && <div className="solutionBig">{solutionDisplay(solution)}</div>}
+          <p className="verdictSub">{msg}.</p>
         </div>
       ) : (
         <p className="diagMsg">{msg}</p>
       )}
       <p className="diagExplain">{explain}</p>
-      <label className="check" style={{ marginTop: 10 }}
-        title="Show or hide the solution and intersection tags in the 3D view">
-        <input
-          type="checkbox"
+      <div style={{ marginTop: 12 }}>
+        <Check
           checked={solLabels}
-          onChange={(e) => onSolLabels(e.target.checked)}
-        />
-        Solution labels in 3D
-      </label>
+          onChange={onSolLabels}
+          title="Show or hide the solution and intersection tags in the 3D view"
+        >
+          Solution labels in 3D
+        </Check>
+      </div>
     </div>
   )
 }
@@ -610,7 +664,7 @@ function PlaneCard({ planeState, status, plane, onChange, onToggle, onLabels, on
         <span className="dot" style={{ background: color }} />
         <span className="planeName">Plane {planeState.slot + 1}</span>
         {plane && <span className="eqInline" style={{ color }}>{eqString(plane.n, plane.d)}</span>}
-        <button className="delBtn" title="Remove this plane" onClick={onRemove}>✕</button>
+        <button className="delBtn" title="Remove this plane" onClick={onRemove}><IconX /></button>
       </div>
 
       <div className="eqRow">
@@ -655,24 +709,17 @@ function PlaneCard({ planeState, status, plane, onChange, onToggle, onLabels, on
       )}
 
       <div className="cardActions">
-        <label className="check">
-          <input
-            type="checkbox"
-            style={{ accentColor: color }}
-            checked={planeState.show}
-            onChange={(e) => onToggle(e.target.checked)}
-          />
+        <Check checked={planeState.show} onChange={onToggle} color={color}>
           Show plane
-        </label>
-        <label className="check" title="Show or hide this plane's tags in the 3D view">
-          <input
-            type="checkbox"
-            style={{ accentColor: color }}
-            checked={planeState.labels}
-            onChange={(e) => onLabels(e.target.checked)}
-          />
+        </Check>
+        <Check
+          checked={planeState.labels}
+          onChange={onLabels}
+          color={color}
+          title="Show or hide this plane's tags in the 3D view"
+        >
           Labels
-        </label>
+        </Check>
         <button
           className="viewBtnSm"
           disabled={!plane}
@@ -979,36 +1026,27 @@ export default function App() {
           <div className="checks">
             {sys.kind === 'unique' && (
               <>
-                <label className="check stack">
-                  <input type="checkbox" checked={showSolPoint}
-                    onChange={(e) => setShowSolPoint(e.target.checked)} style={{ accentColor: '#dc2626' }} />
+                <Check stack checked={showSolPoint} onChange={setShowSolPoint} color="#dc2626">
                   Solution point (red)
-                </label>
-                <label className="check stack">
-                  <input type="checkbox" checked={showPairLinesUnique}
-                    onChange={(e) => setShowPairLinesUnique(e.target.checked)} style={{ accentColor: '#64748b' }} />
-                  <span>Pairwise intersection lines&nbsp;<small>(all three pass through the solution)</small></span>
-                </label>
+                </Check>
+                <Check stack checked={showPairLinesUnique} onChange={setShowPairLinesUnique} color="#64748b">
+                  Pairwise intersection lines&nbsp;<small>(all three pass through the solution)</small>
+                </Check>
               </>
             )}
             {sys.kind === 'line' && (
-              <label className="check stack">
-                <input type="checkbox" checked={showSolLine}
-                  onChange={(e) => setShowSolLine(e.target.checked)} style={{ accentColor: '#dc2626' }} />
+              <Check stack checked={showSolLine} onChange={setShowSolLine} color="#dc2626">
                 Solution line (red)
-              </label>
+              </Check>
             )}
             {(sys.kind === 'incompatible' || sys.kind === 'two-line') && (
-              <label className="check stack">
-                <input type="checkbox" checked={showPairLines}
-                  onChange={(e) => setShowPairLines(e.target.checked)} style={{ accentColor: '#64748b' }} />
+              <Check stack checked={showPairLines} onChange={setShowPairLines} color="#64748b">
                 {sys.kind === 'two-line' ? 'Intersection line' : 'Pairwise intersection lines'}
-              </label>
+              </Check>
             )}
-            <label className="check stack">
-              <input type="checkbox" checked={showAxes} onChange={(e) => setShowAxes(e.target.checked)} />
+            <Check stack checked={showAxes} onChange={setShowAxes}>
               Axes and scale
-            </label>
+            </Check>
           </div>
           <div className="sliderRow">
             <span>Plane opacity</span>

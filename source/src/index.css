@@ -390,37 +390,22 @@ html, body, #root {
   margin-bottom: 13px;
 }
 .brace {
-  font-size: 48px;
-  font-weight: 400;
+  font-size: 58px;
+  font-weight: 500;
   color: var(--ink);
   line-height: 1;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--mono);
   user-select: none;
 }
-.eqList { display: flex; flex-direction: column; gap: 4px; }
+.eqList { display: flex; flex-direction: column; gap: 2px; }
 .eqItem {
   font-family: var(--mono);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
 }
 
 /* diagnosis */
-.badge {
-  display: inline-block;
-  padding: 5px 13px;
-  border-radius: 999px;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  font-weight: 400;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  border: 1px solid var(--ink);
-  box-shadow: var(--shadow-chip);
-}
-.badge.ok   { background: #c8f7d4; color: #0c4a24; }
-.badge.info { background: #dcd8ff; color: #2a21a6; }
-.badge.bad  { background: #ffd2d2; color: #7f1212; }
-
 .diagMsg {
   margin: 12px 0 2px;
   font-size: 15px;
@@ -429,54 +414,65 @@ html, body, #root {
   letter-spacing: -0.01em;
 }
 .verdict {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   border: 1px solid var(--ink);
-  border-radius: 10px;
-  padding: 13px 14px 12px;
+  border-radius: 8px;
+  padding: 12px;
 }
-.verdict.ok   { background: #e3f8e9; }
-.verdict.info { background: #e9e6ff; }
-.verdict.bad  { background: #ffe8e4; }
 .verdictTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 12px;
 }
-.detChip {
+.verdictState {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink);
+}
+.vDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.detNote {
+  font-family: var(--mono);
+  font-style: italic;
   font-size: 10px;
-  letter-spacing: 0.05em;
-  background: #ffffff;
-  border: 1px solid var(--ink);
-  border-radius: 999px;
-  padding: 4px 10px;
+  color: rgba(0, 0, 0, 0.58);
   white-space: nowrap;
   cursor: help;
 }
 .solutionBig {
   font-family: var(--mono);
   font-size: 21px;
-  font-weight: 600;
-  color: var(--bad);
-  line-height: 1.2;
-  margin: 0 0 7px;
+  font-weight: 400;
+  font-feature-settings: "ss07" 1;
+  color: var(--ink);
+  line-height: 1.3;
   overflow-wrap: anywhere;
 }
-.solutionBig.noSol { color: var(--ink); }
-.verdictMsg {
+.verdictSub {
   margin: 0;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: rgba(17, 17, 17, 0.72);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.58);
+  line-height: 1.4;
 }
-.verdict + .diagExplain { margin-top: 11px; }
 .diagExplain {
   margin: 7px 0 0;
   font-family: var(--mono);
-  font-size: 11.5px;
-  color: var(--muted);
-  line-height: 1.55;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
 }
 
 .dot {
@@ -492,7 +488,7 @@ html, body, #root {
 .cardHead {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 12px;
   padding-bottom: 11px;
   border-bottom: 1px solid var(--ink);
@@ -500,14 +496,14 @@ html, body, #root {
 .planeName {
   font-family: var(--mono);
   font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  font-weight: 400;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 .eqInline {
   margin-left: auto;
   font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -518,15 +514,17 @@ html, body, #root {
   appearance: none;
   border: none;
   background: transparent;
-  color: var(--faint);
-  font-size: 13px;
+  color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
-  padding: 2px 6px;
+  padding: 4px;
+  margin-left: 12px;
   border-radius: 999px;
-  line-height: 1;
-  transition: background 0.15s, color 0.15s;
+  line-height: 0;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
 }
-.delBtn:hover { color: #fff; background: var(--bad); }
+.delBtn:hover { color: var(--bad); }
 
 .eqRow {
   display: flex;
@@ -626,7 +624,7 @@ html, body, #root {
 .check {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   font-family: var(--mono);
   font-size: 12px;
   font-weight: 400;
@@ -635,14 +633,33 @@ html, body, #root {
   user-select: none;
 }
 .check input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.checkBox {
   width: 15px;
   height: 15px;
-  margin: 0;
-  cursor: pointer;
-  accent-color: var(--accent);
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: #ffffff;
+  transition: background 0.15s, border-color 0.15s;
 }
+.check input:focus-visible + .checkBox {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.check:hover .checkBox { border-color: var(--accent); }
 .check.stack { width: 100%; }
 .check small { color: var(--faint); }
+.checkLabel { line-height: 1.4; }
 
 .addBtn {
   width: 100%;
