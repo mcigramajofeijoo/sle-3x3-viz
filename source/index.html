@@ -4,22 +4,63 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="google" content="notranslate" />
-    <meta name="description" content="Interactive 3D visualizer for 3x3 systems of linear equations: each equation is a plane in space — see whether the system has a unique solution, infinitely many, or none." />
+    <meta name="description" content="Free interactive tool to visualize and solve 3x3 systems of linear equations. See the three planes in 3D — one solution, infinitely many, or none." />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="SLE – 3x3" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image:alt" content="Three colored planes intersecting at a point in 3D, next to the system diagnosis panel showing Point(3, 5, 2)" />
     <meta property="og:title" content="SLE – 3x3 · Systems of Linear Equations in 3D" />
-    <meta property="og:description" content="Interactive 3D visualizer for 3x3 systems of linear equations: each equation is a plane in space — see whether the system has a unique solution, infinitely many, or none." />
+    <meta property="og:description" content="Free interactive tool to visualize and solve 3x3 systems of linear equations. See the three planes in 3D — one solution, infinitely many, or none." />
     <meta property="og:url" content="https://mcigramajofeijoo.github.io/sle-3x3-viz/" />
-    <meta property="og:image" content="https://mcigramajofeijoo.github.io/sle-3x3-viz/thumbnail.png" />
-    <meta property="og:image:width" content="2880" />
-    <meta property="og:image:height" content="1800" />
+    <meta property="og:image" content="https://mcigramajofeijoo.github.io/sle-3x3-viz/thumbnail.png?v=2" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="SLE – 3x3 · Systems of Linear Equations in 3D" />
     <meta name="twitter:description" content="Interactive 3D visualizer for 3x3 systems of linear equations." />
-    <meta name="twitter:image" content="https://mcigramajofeijoo.github.io/sle-3x3-viz/thumbnail.png" />
+    <meta name="twitter:image" content="https://mcigramajofeijoo.github.io/sle-3x3-viz/thumbnail.png?v=2" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='0.9em'%20font-size='90'%3E%F0%9F%93%90%3C/text%3E%3C/svg%3E" />
-    <title>SLE – 3x3 · Systems of Linear Equations in 3D</title>
+    <link rel="canonical" href="https://mcigramajofeijoo.github.io/sle-3x3-viz/" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "SLE \u2013 3x3",
+      "alternateName": "3x3 System of Linear Equations Visualizer",
+      "url": "https://mcigramajofeijoo.github.io/sle-3x3-viz/",
+      "description": "Free interactive tool to visualize and solve 3x3 systems of linear equations. Each equation is graphed as a plane in 3D; the system is classified live as having one solution, infinitely many, or none.",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript and WebGL",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "screenshot": "https://mcigramajofeijoo.github.io/sle-3x3-viz/thumbnail.png",
+      "image": "https://mcigramajofeijoo.github.io/sle-3x3-viz/thumbnail.png",
+      "inLanguage": "en",
+      "keywords": "3x3 system of linear equations, linear algebra visualizer, three planes intersection, solve linear system with 3 variables, 3D graphing tool, unique solution, infinite solutions, no solution",
+      "author": {
+        "@type": "Person",
+        "name": "Marcelo Cruz Ignacio Gramajo Feijoo",
+        "url": "https://linkedin.com/in/mcigramajofeijoo"
+      }
+    }
+    </script>
+    <title>3x3 System of Linear Equations — 3D Visualizer &amp; Solver · SLE 3x3</title>
   </head>
   <body>
+    <noscript>
+      <main style="font-family: sans-serif; max-width: 640px; margin: 40px auto; padding: 0 20px">
+        <h1>SLE – 3x3 · 3x3 System of Linear Equations Visualizer</h1>
+        <p>
+          SLE – 3x3 is a free interactive tool that visualizes and solves 3x3 systems of
+          linear equations. Each equation in a, b and c is graphed as a plane in 3D space;
+          the solver classifies the system live and shows its solution — a point where the
+          three planes meet, a shared line or plane with infinitely many solutions, or no
+          solution when the planes never meet — together with det(A) and the parametric form.
+        </p>
+        <p>This app requires JavaScript and WebGL to run.</p>
+      </main>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

@@ -1,8 +1,8 @@
 # SLE – 3x3 · Systems of Linear Equations in 3D
 
-An educational web tool to **see** what solving a 3×3 system of linear equations means:
-each equation in a, b and c is a plane in space, and the solution of the system is the
-set of points shared by all three planes.
+A free interactive **3D visualizer and solver for 3x3 systems of linear equations**:
+each equation in a, b and c is graphed as a plane in space, and the solution of the
+system is the set of points shared by all three planes — see it, rotate it, change it.
 
 **Live demo:** https://mcigramajofeijoo.github.io/sle-3x3-viz/
 

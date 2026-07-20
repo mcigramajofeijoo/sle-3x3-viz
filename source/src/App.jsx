@@ -1078,10 +1078,11 @@ export default function App() {
           <details>
             <summary>About This Tool</summary>
             <p className="aboutText">
-              SLE – 3x3 is a free educational visualizer for systems of three linear
-              equations in three unknowns. Each equation defines a plane in space, and
-              the solution of the system is whatever the three planes share: a single
-              point, a whole line, a whole plane — or nothing at all.
+              SLE – 3x3 is a free visualizer and solver for 3x3 systems of linear
+              equations — three equations, three unknowns. Each equation is graphed as
+              a plane in 3D space, and the solution of the system is whatever the three
+              planes share: a single point, a whole line, a whole plane — or nothing
+              at all.
             </p>
             <p className="aboutText">
               It is meant as a companion for anyone first meeting linear algebra: type
